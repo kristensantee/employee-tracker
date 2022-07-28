@@ -1,9 +1,10 @@
-const express = require('express');
+// const express = require('express');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+const cTable = require('console.table');
 
-const PORT = process.env.PORT || 3001;
-const app = express();
+// const PORT = process.env.PORT || 3001;
+// const app = express();
 
 const db = mysql.createConnection(
     {
@@ -20,7 +21,7 @@ const init = () => {
         {
             name: "start",
             message: "Welcome! Press Enter to begin.",
-            type: "input"
+            type: "input",
         },
         {
             name: "task",
@@ -50,21 +51,50 @@ const init = () => {
 }
 
 const viewDepartments = () => {
-    console.log("viewing departments");
-    app.get('/',(req,res)=>{
-        db.query("SELECT * FROM department", (err,data)=>{
-            res.json(results)
-        })
+    db.query("SELECT * FROM department", (err,results)=>{
+        if(err)
+            throw err
+        console.table('\n', results);
     })
+    console.log('Press Enter to return to the task list');
+    init();
 }
 const viewRoles = () => {
-    console.log("viewing roles")
+    db.query('SELECT * FROM roles', (err,results)=>{
+        if(err)
+            throw err
+        console.table('\n', results);
+    })
+    init();
 }
 const viewEmployees = () => {
-    console.log("viewing employees")
+    db.query('SELECT * FROM employees', (err,results)=>{
+        if(err)
+            throw err
+        console.table('\n', results);
+    })
+    init();
 }
 const addDepartment = () => {
-    console.log("adding department")
+    inquirer.prompt([
+        {
+            name: "addDept",
+            message: "What department do you want to add?",
+            type: "input",
+        }
+    ]).then(ans=>{
+        console.log(ans)
+        db.query('INSERT INTO department(name) VALUES(name)', ans.name, (err,results)=>{
+            if(err)
+                throw err
+            db.query('SELECT * FROM department', (err,results)=>{
+                if(err)
+                    throw err
+                console.table('\n', results);
+            })
+        })
+    })
+    // init();
 }
 const addRole = () => {
     console.log("adding role")
@@ -76,7 +106,10 @@ const updateRole = () => {
     console.log("updating role")
 }
 const quitApp = () => {
-    console.log("quit")
+    console.log("Have a great day!")
 }
+// app.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+// });
 
 init();
