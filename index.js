@@ -1,10 +1,6 @@
-// const express = require('express');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
-
-// const PORT = process.env.PORT || 3001;
-// const app = express();
 
 const db = mysql.createConnection(
     {
@@ -68,7 +64,7 @@ const viewRoles = () => {
     init();
 }
 const viewEmployees = () => {
-    db.query('SELECT * FROM employees', (err,results)=>{
+    db.query('SELECT employees.id, first_name, last_name, manager_id, roles.title, roles.salary, department.name    FROM employees JOIN roles on employees.role_id = roles.id    JOIN department on department_id = department.id', (err,results)=>{
         if(err)
             throw err
         console.table('\n', results);
@@ -78,13 +74,12 @@ const viewEmployees = () => {
 const addDepartment = () => {
     inquirer.prompt([
         {
-            name: "addDept",
+            name: "name",
             message: "What department do you want to add?",
             type: "input",
         }
     ]).then(ans=>{
-        console.log(ans)
-        db.query('INSERT INTO department(name) VALUES(name)', ans.name, (err,results)=>{
+        db.query('INSERT INTO department(name) VALUES(?)', [ans.name], (err,results)=>{
             if(err)
                 throw err
             db.query('SELECT * FROM department', (err,results)=>{
@@ -93,23 +88,140 @@ const addDepartment = () => {
                 console.table('\n', results);
             })
         })
+        init();
     })
-    // init();
 }
 const addRole = () => {
-    console.log("adding role")
+    db.query('SELECT id AS value, name FROM department', (err,results)=>{
+        if(err)
+            throw err
+        inquirer.prompt([
+            {
+                name: "title",
+                message: "What role do you want to add?",
+                type: "input",
+            },
+            {
+                name: "salary",
+                message: "What is the salary for this role?",
+                type: "number",
+            },
+            {
+                name: "department_id",
+                message: "What department is this role in?",
+                type: "list",
+                choices: results,
+            }
+        ]).then(ans=>{
+            console.log(ans);
+            db.query('INSERT INTO roles(title, salary, department_id) VALUES(?,?,?)', [ans.title, ans.salary, ans.department_id], (err,results)=>{
+                if(err)
+                    throw err
+                db.query('SELECT * FROM roles', (err,results)=>{
+                    if(err)
+                        throw err
+                    console.table('\n', results);
+                })
+                init();
+        })
+    })
+});
+    
 }
 const addEmployee = () => {
-    console.log("adding employee")
+    db.query('SELECT id AS value, title AS name FROM roles', (err,results)=>{
+        if(err)
+            throw err
+        inquirer.prompt([
+            {
+                name: "first_name",
+                message: "What is their first name?",
+                type: "input",
+            },
+            {
+                name: "last_name",
+                message: "What is their last name?",
+                type: "input",
+            },
+            {
+                name: "manager_id",
+                message: "Who is their manager? (by manager ID number)",
+                type: "number",
+            },
+            {
+                name: "role_id",
+                message: "What is their role?",
+                type: "list",
+                choices: results,
+            }
+        ]).then(ans=>{
+            console.log(ans);
+            db.query('INSERT INTO employees(first_name, last_name, manager_id, role_id) VALUES(?,?,?,?)', [ans.first_name, ans.last_name, ans.manager_id, ans.role_id], (err,results)=>{
+                if(err)
+                    throw err
+                db.query('SELECT * FROM employees', (err,results)=>{
+                    if(err)
+                        throw err
+                    console.table('\n', results);
+                })
+                init();
+            })
+        })
+    })
 }
 const updateRole = () => {
-    console.log("updating role")
+    db.query('SELECT id AS value, first_name AS name from employees', (err,results)=>{
+        if (err)
+            throw err
+        inquirer.prompt([
+            {
+                name: "name",
+                message: "Which employee do you want to update?",
+                type: "list",
+                choices: results,
+            }
+        ]).then(ans=>{
+            updateEmployee();
+        })
+    })
 }
+
+const updateEmployee = () => {
+    db.query('SELECT id AS value, title AS name', (err,results)=>{
+        if (err)
+            throw err
+        inquirer.prompt([
+            {
+                name: "role",
+                message: "Which role do you want to move them to?",
+                type: "list",
+                choices: results,
+            }
+        ]) .then(ans=>{
+            db.query('UPDATE employees SET title WHERE id (?)', results, (err,results)=>{
+                if (err)
+                    throw err
+                console.table('\n',results)
+            })
+        })
+    })
+}
+
+    // ]).then(ans=>{
+    //     console.log(ans);
+        // db.query('INSERT INTO employees(first_name, last_name, manager_id, role_id) VALUES(?,?,?,?)', [ans.first_name, ans.last_name, ans.manager_id, ans.role_id], (err,results)=>{
+            //     if(err)
+            //         throw err
+            //     db.query('SELECT * FROM employees', (err,results)=>{
+                //         if(err)
+                //             throw err
+                //         console.table('\n', results);
+                //     })
+                //     init();
+                // })
+
 const quitApp = () => {
     console.log("Have a great day!")
 }
-// app.listen(PORT, () => {
-//     console.log(`Server running on port ${PORT}`);
-// });
 
 init();

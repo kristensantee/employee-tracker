@@ -17,11 +17,11 @@ VALUES  ('Sales Lead', 100000, 4),
         ('Lawyer', 190000, 3);
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES  ('George', 'Bluth', 4, 1),
-        ('Lucille', 'Bluth', 3, 1),
+VALUES  ('George', 'Bluth', 4, null),
+        ('Lucille', 'Bluth', 3, null),
         ('Oscar', 'Bluth', 2, 1),
         ('Michael', 'Bluth', 3, 1),
-        ('GOB', 'Bluth', 2, 2),
+        ('GOB', 'Bluth', 2, 1),
         ('Lindsay', 'Bluth', 1, 2),
         ('Tobias', 'Funke', 1, 1),
         ('George Michael', 'Bluth', 1, 4),
